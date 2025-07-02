@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>FrontEnd-Danat-Summer</title>
+    <h1>Первый том JS tutorials point</h1>
+    <script>
+      document.write("эта надпись сделана в JS");
+      alert("это метод alert");
+      console.log("Hello World в консоли браузера");
+    </script>
+  </head>
+  <body>
+    <div id="output"></div>
+    <script>
+      document.getElementById("output").innerHTML =
+        "Это текст в div с id 'output'";
+      var num1 = 1;
+      var num2 = 2;
+      console.log(num1, num2 + " - это переменные в JS");
+      // коментарий в JS
+      /* многострочный комментарий в JS */
+      var str = "";
+      var num = 1;
+      var bool = true;
+      var und;
+      document.write(
+        "<br>в JS переменные нетипизированы так что можно писать все: " +
+          str +
+          ", " +
+          num +
+          ", " +
+          bool +
+          ", " +
+          und +
+          "<br>"
+      );
+      function test() {
+        if (true) {
+          let x = 1;
+          var y = 1;
+          var z = x + y; // let работает только в блоке кода а var везде так что тут вывод будет 2
+        }
+        var z = x + y; // здесь будет ошибка, т.к. x объявлена с let и доступна только в блоке if
+      }
+
+      const x = 10; // константа, значение которой нельзя изменить
+      // x = 20; const x = 20; // это вызовет ошибку, но константа работает в пределах блока кода как let
+
+      document.write("100" + 24 + "<br/>"); // в JS при сложении они просто складываются типо 10024
+      document.write("100" + false + "<br/>");
+      document.write("100" + null + "<br/>");
+      document.write("100" + undefined + "<br/>");
+
+      document.writeln("100" / 50); // но вот с делением и вычитанием js приводит к числу
+      document.writeln("100" - "50"); // 50
+      document.writeln("100" * true); // тут true приводится к 1 и результат 100
+      document.writeln("100" - false); // а тут false приводится к 0 и результат 100
+      document.writeln("tp" / 50); // строки не приводятся к числу, поэтому NaN тоесть Not a Number
+    </script>
+    <script>
+      "use strict"; // строгий режим, запрещает некоторые ошибки и делает код более безопасным
+      let y = 50; // например в строгом режиме нельзя объявить переменную без let, var или const
+      document.write("The value of the X is: " + y);
+      //x = 100; // это не сработает в строгом режиме, т.к. x не объявлена
+      //document.write("The value of the X is: " + x);
+    </script>
+    <script>
+      //и последнее, в JS есть ограничение на название переменных.
+      var num = 1; // это нормально
+      var double = 2; // так не стоит делать, т.к. это зарезервированное слово в JS
+      //var const = 3; // это уже не сработает, т.к. const - зарезервированное слово
+      //var 1num = 4; // это тоже не сработает, т.к. переменная не может начинаться с цифры
+    </script>
+  </body>
+</html>
