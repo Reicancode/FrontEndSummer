@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JavaScript Examples</title>
+</head>
+<body>
+  <h1>JavaScript Examples</h1>
+
+  <script>
+    let age = 18;
+    if (age >= 18) {
+      console.log("Adult");
+    } else {
+      console.log("Minor");
+    }
+
+    let i = 0;
+    while (i < 3) {
+      console.log(i);
+      i++;
+    }
+
+    for (let i = 0; i < 3; i++) {
+      console.log(i);
+    }
+
+    let person = {name: "Danat", age: 21};
+    for (let key in person) {
+      console.log(key + ": " + person[key]);
+    }
+
+    let colors = ["red", "green", "blue"];
+    for (let color of colors) {
+      console.log(color);
+    }
+
+    for (let i = 0; i < 5; i++) {
+      if (i === 3) break;
+      console.log(i);
+    }
+
+    for (let i = 0; i < 5; i++) {
+      if (i === 2) continue;
+      console.log(i);
+    }
+
+    let day = 3;
+    switch (day) {
+      case 1: console.log("Monday"); break;
+      case 2: console.log("Tuesday"); break;
+      case 3: console.log("Wednesday"); break;
+      default: console.log("Another day");
+    }
+
+    const myIterator = {
+      data: [1, 2,  3],
+      [Symbol.iterator]() {
+        let index = 0;
+        return {
+          next: () => ({
+            value: this.data[index],
+            done: index++ >= this.data.length
+          })
+        };
+      }
+    };
+
+    for (let val of myIterator) {
+      console.log(val);
+    }
+  </script>
+</body>
+</html>

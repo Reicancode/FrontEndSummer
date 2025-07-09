@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JavaScript Operators</title>
+</head>
+<body>
+  <h1>Операторы JavaScript – Примеры</h1>
+
+  <script>
+    let sum = 5 + 3;
+    let diff = 10 - 4;
+    let prod = 2 * 3;
+    let div = 10 / 2;
+    let mod = 7 % 3;
+    let exp = 2 ** 3;
+
+    console.log("Arithmetic:", sum, diff, prod, div, mod, exp);
+
+    let a = 5 > 3;
+    let b = 4 < 2;
+    let c = 5 == '5';
+    let d = 5 === 5;
+    let e = 5 != 3;
+    let f = 5 !== '5';
+    
+    console.log("Comparison:", a, b, c, d, e, f);
+
+    let x = true && false;
+    let y = true || false;
+    let z = !true;
+
+    console.log("Logical:", x, y, z);
+
+    let bit1 = 5 & 3; //5: 0101  3: 0011  
+    let bit2 = 5 | 3;
+    let bit3 = 5 ^ 3;
+    let bit4 = ~5;
+    //00000000 00000000 00000000 00000101 ~ 11111111 11111111 11111111 11111010
+    let bit5 = 5 << 1;
+    let bit6 = 5 >> 1;
+    let bit7 = -5 >>> 1;
+
+    console.log("Bitwise:", bit1, bit2, bit3, bit4, bit5, bit6, bit7);
+
+    let val = 10;
+    val += 5;
+    val -= 3;
+    val *= 2;
+    val /= 4;
+    val %= 2;
+    val **= 2;
+
+    console.log("Assignment:", val);
+
+    let ternary = (5 > 3) ? "Yes" : "No";
+
+    console.log("Ternary:", ternary);
+
+    let type = typeof "Hello";
+
+    console.log("typeof:", type);
+
+    let name = null ?? "Default";
+
+    console.log("Nullish:", name);
+
+    let username = null;
+    username ??= "Guest";
+
+    console.log("Safe Assignment:", username);
+
+    let obj = { a: 1, b: 2, c: 3 };
+    delete obj.a;
+
+    console.log("Delete:", obj);
+
+    let comma = (1 + 2, 3 + 4);
+
+    console.log("Comma:", comma);
+
+    let group = (2 + 3) * 4;
+
+    console.log("Grouping:", group);
+
+    function* gen() {
+      yield 1;
+      yield 2;
+    }
+
+    const g = gen();
+    console.log("Yield:", g.next().value, g.next().value);
+
+    
+    const nums1 = [10, 20, 30];
+    const nums2 = [40, 50, 60];
+    const res = [...nums1];
+    
+    console.log("Spread:", res);
+
+    
+  </script>
+</body>
+</html>
