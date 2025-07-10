@@ -23,7 +23,7 @@ function updateTime() {
     hours++;
     minutes = 0;
   }
-  timer.textContent = `${hours.toString()}:${minutes.toString()}:${seconds.toString()}:${mls.toString()}`;
+  timer.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${mls.toString().padStart(2, '0')}`;
 }
 
 startBtn.addEventListener("click", () => {
@@ -45,7 +45,7 @@ resetBtn.addEventListener("click", () => {
   seconds = 0;
   minutes = 0;
   hours = 0;
-  timer.textContent = "0:0:0:0";
+  timer.textContent = "00:00:00:00";
   startBtn.disabled = false;
   pauseBtn.disabled = true;
   resetBtn.disabled = true;
