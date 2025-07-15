@@ -1,0 +1,96 @@
+body {
+    margin: 0;
+    font-family: sans-serif;
+    background-color: #fff;
+  }
+  
+  .App {
+    text-align: center;
+  }
+  
+  .start-screen {
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .start-screen button {
+    padding: 1rem 2rem;
+    font-size: 1.5rem;
+    border-radius: 24px;
+    cursor: pointer;
+  }
+  
+  .game-screen {
+    height: 85vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: background-color 0.3s ease;
+  }
+  
+  .game-screen.player1-active {
+    background-color: #d4ffd4;
+    height: 100vh;
+  }
+  
+  .game-screen.player2-active {
+    background-color: #d4e0ff;
+    height: 100vh;
+  }
+  
+  .game-content {
+    height: 90vh;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .emoji-display span {
+    font-size: 6rem;
+  }
+  
+  .key-hint {
+    font-size: 10rem;
+    padding: 4rem;
+    opacity: 0.4;
+  }
+  
+  .answer-buttons {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 3rem;    
+  }
+  
+  .answer-buttons button {
+    padding: 1rem 2rem;
+    font-size: 1.25rem;
+    cursor: pointer;
+    border-radius: 24px;
+  }
+  
+  .scoreboard {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    font-size: 1.25rem;
+  }
+  
+  .winner-modal {
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -40%);
+    background: #fff;
+    border: 2px solid #000;
+    padding: 2rem;
+    text-align: center;
+    font-size: 1.5rem;
+    z-index: 1000;
+  }
+  
