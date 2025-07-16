@@ -54,9 +54,8 @@ export default function GameScreen() {
         setQuestion(next);
         setPlayerTurn(null);
         setAnswered(false);
-      }, 1200);
+      }, 1500);
     } else {
-      // Неверный ответ — передаём ход
       setTimeout(() => {
         setPlayerTurn(playerTurn === 1 ? 2 : 1);
         setAnswered(false);
