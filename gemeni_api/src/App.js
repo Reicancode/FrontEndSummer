@@ -1,39 +1,62 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const GEMINI_API_KEY = "AIzaSyC55Bytp7TUWr2dywp3TDqPPyKDREMHwnU"; // твой ключ
+const GEMINI_API_KEY = "AIzaSyC55Bytp7TUWr2dywp3TDqPPyKDREMHwnU";
+const CHAT_HISTORY_KEY = "kaspi_chat_history";
 
 function App() {
   const [userPrompt, setUserPrompt] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    try {
+      const savedHistory = localStorage.getItem(CHAT_HISTORY_KEY);
+      if (savedHistory) {
+        const parsedHistory = JSON.parse(savedHistory);
+        if (Array.isArray(parsedHistory)) {
+          setChatHistory(parsedHistory);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load chat history:", error);
+    }
+    setIsInitialized(true);
+  }, []);
+
+  // Save chat history to local storage whenever it changes
+  useEffect(() => {
+    if (isInitialized) {
+      try {
+        localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(chatHistory));
+      } catch (error) {
+        console.error("Failed to save chat history:", error);
+      }
+    }
+  }, [chatHistory, isInitialized]);
 
   const handleSend = async () => {
     if (!userPrompt.trim()) return;
 
     const userMessage = { role: "user", parts: [{ text: userPrompt }] };
-    const visibleHistory = [...chatHistory, userMessage];
+    const updatedHistory = [...chatHistory, userMessage];
 
-    setChatHistory(visibleHistory);
+    setChatHistory(updatedHistory);
     setUserPrompt("");
     setLoading(true);
 
-    // Добавляем скрытый промпт от "user" в начало (он не будет виден в интерфейсе)
     const hiddenPrompt = {
       role: "user",
       parts: [
         {
           text:
-            "Ты помощник Kaspi.kz. Отвечай только на вопросы, связанные с Kaspi — покупки, Kaspi Gold, переводы, рассрочка. " +
-            "Если вопрос не связан с Kaspi, вежливо скажи, что можешь говорить только о Kaspi." +
-            "Если пользователь спрашивает человек ли ты, ответь, что ты виртуальный помощник Kaspi.kz по имени Арман" +
-            "Если скажут привет, ответь приветствием и представься как Арман, виртуальный помощник Kaspi.kz." +
-            "Не добавляй ** звездочки ** в ответах, просто пиши текст.",
+            "Ты помогаешь пользователю найти информацию о продуктах и рецептах. "
         },
       ],
     };
 
-    const fullHistory = [hiddenPrompt, ...visibleHistory];
+    const fullHistory = [hiddenPrompt, ...updatedHistory];
 
     try {
       const res = await axios.post(
@@ -51,7 +74,7 @@ function App() {
 
       const reply = res.data.candidates?.[0]?.content;
       if (reply) {
-        setChatHistory((prev) => [...prev, reply]);
+        setChatHistory(prev => [...prev, reply]);
       } else {
         alert("Gemini не вернул ответа.");
       }
@@ -60,6 +83,12 @@ function App() {
       alert("Ошибка при обращении к Gemini API.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const clearHistory = () => {
+    if (window.confirm("Вы уверены, что хотите очистить историю чата?")) {
+      setChatHistory([]);
     }
   };
 
@@ -74,8 +103,28 @@ function App() {
           border: "1px solid #ccc",
           padding: "10px",
           marginBottom: "10px",
+          position: "relative",
         }}
       >
+        {chatHistory.length > 0 && (
+          <button
+            onClick={clearHistory}
+            style={{
+              position: "absolute",
+              top: "5px",
+              right: "5px",
+              background: "#ff4444",
+              color: "white",
+              border: "none",
+              borderRadius: "3px",
+              padding: "3px 8px",
+              cursor: "pointer",
+            }}
+            title="Очистить историю"
+          >
+            ×
+          </button>
+        )}
         {chatHistory.map((msg, i) => (
           <div key={i} style={{ marginBottom: "10px" }}>
             <strong>{msg.role === "user" ? "Вы" : "Gemini"}:</strong>
@@ -90,17 +139,38 @@ function App() {
         onChange={(e) => setUserPrompt(e.target.value)}
         placeholder="Введите сообщение..."
         style={{ width: "100%", padding: "10px" }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+          }
+        }}
       />
 
-      <button
-        onClick={handleSend}
-        disabled={loading}
-        style={{ marginTop: "10px", padding: "10px" }}
-      >
-        {loading ? "Ожидание ответа..." : "Отправить"}
-      </button>
+      <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+        <button
+          onClick={handleSend}
+          disabled={loading}
+          style={{ padding: "10px", flex: 1 }}
+        >
+          {loading ? "Ожидание ответа..." : "Отправить"}
+        </button>
+        {chatHistory.length > 0 && (
+          <button
+            onClick={clearHistory}
+            style={{
+              padding: "10px",
+              background: "#ff4444",
+              color: "white",
+              border: "none",
+            }}
+          >
+            Очистить историю
+          </button>
+        )}
+      </div>
     </div>
   );
 }
 
-export default App;
+export default App; 
