@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const API_KEY = "becd6e76242b4ed281c41af0f5a6f8e7";
+const LIBRE_TRANSLATE_URL = "https://libretranslate.de/translate";
 
 // Translation dictionaries
 const translations = {
@@ -17,7 +18,8 @@ const translations = {
     error: "Error fetching recipes. Please try again later.",
     noFavorites: "Your favorites list is empty. Add some recipes!",
     lightMode: "☀️ Light",
-    darkMode: "🌙 Dark"
+    darkMode: "🌙 Dark",
+    translating: "Translating..."
   },
   ru: {
     title: "Поиск рецептов",
@@ -31,7 +33,8 @@ const translations = {
     error: "Ошибка при загрузке рецептов. Пожалуйста, попробуйте позже.",
     noFavorites: "Ваш список избранного пуст. Добавьте рецепты!",
     lightMode: "☀️ Светлая",
-    darkMode: "🌙 Тёмная"
+    darkMode: "🌙 Тёмная",
+    translating: "Перевод..."
   },
   kk: {
     title: "Рецепт іздеу",
@@ -45,37 +48,27 @@ const translations = {
     error: "Рецепттерді жүктеу кезінде қате пайда болды. Кейінірек қайталаңыз.",
     noFavorites: "Таңдаулылар тізімі бос. Рецепттер қосыңыз!",
     lightMode: "☀️ Ашық",
-    darkMode: "🌙 Қоңыр"
+    darkMode: "🌙 Қоңыр",
+    translating: "Аударылуда..."
   }
 };
 
-// Common ingredient translations
-const ingredientTranslations = {
-  chicken: { ru: "курица", kk: "тауық" },
-  rice: { ru: "рис", kk: "күріш" },
-  egg: { ru: "яйцо", kk: "жұмыртқа" },
-  milk: { ru: "молоко", kk: "сүт" },
-  beef: { ru: "говядина", kk: "сиыр еті" },
-  potato: { ru: "картофель", kk: "картоп" },
-  tomato: { ru: "помидор", kk: "қызанақ" },
-  onion: { ru: "лук", kk: "пияз" }
-};
-
-function translateIngredients(text, fromLang, toLang = 'en') {
-  if (fromLang === 'en') return text;
+async function translateText(text, sourceLang, targetLang = 'en') {
+  if (sourceLang === targetLang) return text;
   
-  const ingredients = text.split(',').map(ingredient => {
-    const trimmed = ingredient.trim().toLowerCase();
-    // Find translation in our dictionary
-    for (const [enIngredient, translations] of Object.entries(ingredientTranslations)) {
-      if (translations[fromLang] && translations[fromLang].toLowerCase() === trimmed) {
-        return enIngredient;
-      }
-    }
-    return ingredient; // return original if no translation found
-  });
-  
-  return ingredients.join(', ');
+  try {
+    const response = await axios.post(LIBRE_TRANSLATE_URL, {
+      q: text,
+      source: sourceLang,
+      target: targetLang,
+      format: "text"
+    });
+    
+    return response.data.translatedText;
+  } catch (error) {
+    console.error("Translation error:", error);
+    return text;
+  }
 }
 
 function App() {
@@ -84,12 +77,23 @@ function App() {
   const [favorites, setFavorites] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [translating, setTranslating] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [language, setLanguage] = useState('en'); // 'en', 'ru', 'kk'
+  const [language, setLanguage] = useState('en');
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const t = (key) => translations[language][key] || key;
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const storedFavorites = localStorage.getItem("recipeFavorites");
@@ -123,8 +127,12 @@ function App() {
     setRecipes([]);
 
     try {
-      // Translate ingredients to English before searching
-      const englishQuery = language === 'en' ? query : translateIngredients(query, language);
+      let englishQuery = query;
+      if (language !== 'en') {
+        setTranslating(true);
+        englishQuery = await translateText(query, language, 'en');
+        setTranslating(false);
+      }
       
       const response = await axios.get(
         `https://api.spoonacular.com/recipes/findByIngredients`,
@@ -147,6 +155,7 @@ function App() {
       setError(t('error'));
     } finally {
       setLoading(false);
+      setTranslating(false);
     }
   };
 
@@ -167,9 +176,9 @@ function App() {
           display: "grid",
           gridTemplateColumns: isSingleCard
             ? "1fr"
-            : "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "16px",
-          padding: "16px",
+            : `repeat(auto-fit, minmax(${isMobile ? '150px' : '220px'}, 1fr))`,
+          gap: isMobile ? "12px" : "16px",
+          padding: isMobile ? "8px" : "16px",
           justifyItems: isSingleCard ? "center" : "stretch",
         }}
       >
@@ -178,10 +187,10 @@ function App() {
             key={recipe.id}
             style={{
               width: isSingleCard ? "100%" : "100%",
-              maxWidth: isSingleCard ? "400px" : "none",
+              maxWidth: isSingleCard ? (isMobile ? "280px" : "400px") : "none",
               border: `1px solid ${darkMode ? "#444" : "#ddd"}`,
               borderRadius: "8px",
-              padding: "12px",
+              padding: isMobile ? "8px" : "12px",
               textAlign: "center",
               backgroundColor: darkMode ? "#2c2c2c" : "#f9f9f9",
               color: darkMode ? "#fff" : "#000",
@@ -194,9 +203,9 @@ function App() {
           >
             <h3
               style={{
-                margin: "0 0 12px 0",
-                fontSize: "16px",
-                minHeight: "40px",
+                margin: "0 0 8px 0",
+                fontSize: isMobile ? "14px" : "16px",
+                minHeight: isMobile ? "36px" : "40px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -209,10 +218,10 @@ function App() {
               alt={recipe.title}
               style={{
                 width: "100%",
-                height: "160px",
+                height: isMobile ? "120px" : "160px",
                 objectFit: "cover",
                 borderRadius: "6px",
-                marginBottom: "12px",
+                marginBottom: "8px",
               }}
             />
             <div
@@ -220,7 +229,7 @@ function App() {
                 marginTop: "auto",
                 display: "flex",
                 justifyContent: "center",
-                gap: "8px",
+                gap: "6px",
               }}
             >
               <a
@@ -230,12 +239,12 @@ function App() {
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
-                  padding: "6px 10px",
+                  padding: isMobile ? "4px 8px" : "6px 10px",
                   background: "#008CBA",
                   color: "#fff",
                   borderRadius: "4px",
                   textDecoration: "none",
-                  fontSize: "14px",
+                  fontSize: isMobile ? "12px" : "14px",
                 }}
               >
                 {t('viewButton')}
@@ -243,7 +252,7 @@ function App() {
               <button
                 onClick={() => toggleFavorite(recipe)}
                 style={{
-                  padding: "6px 10px",
+                  padding: isMobile ? "4px 8px" : "6px 10px",
                   background: favorites.find((f) => f.id === recipe.id)
                     ? "#FF6347"
                     : darkMode
@@ -253,7 +262,7 @@ function App() {
                   border: "none",
                   borderRadius: "4px",
                   cursor: "pointer",
-                  fontSize: "14px",
+                  fontSize: isMobile ? "12px" : "14px",
                 }}
               >
                 {favorites.find((f) => f.id === recipe.id) ? "♥" : "♡"}
@@ -273,31 +282,49 @@ function App() {
         minHeight: "100vh",
         color: darkMode ? "#fff" : "#000",
         margin: 0,
+        padding: isMobile ? "12px" : "20px",
       }}
     >
-      <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "20px" }}>
+      <div style={{ 
+        maxWidth: "1400px", 
+        margin: "0 auto",
+        width: "100%"
+      }}>
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "20px",
+            marginBottom: isMobile ? "16px" : "20px",
             flexWrap: "wrap",
-            gap: "16px",
+            gap: isMobile ? "8px" : "16px",
           }}
         >
-          <h1 style={{ margin: 0, fontSize: "24px" }}>{t('title')}</h1>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <h1 style={{ 
+            margin: 0, 
+            fontSize: isMobile ? "20px" : "24px",
+            whiteSpace: "nowrap"
+          }}>
+            {t('title')}
+          </h1>
+          <div style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: isMobile ? "6px" : "10px",
+            flexWrap: "wrap",
+            justifyContent: "flex-end"
+          }}>
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
               style={{
-                padding: "8px",
+                padding: isMobile ? "6px" : "8px",
                 background: darkMode ? "#333" : "#ddd",
                 color: darkMode ? "#fff" : "#000",
                 border: "none",
                 borderRadius: "4px",
                 cursor: "pointer",
+                fontSize: isMobile ? "12px" : "14px",
               }}
             >
               <option value="en">English</option>
@@ -307,13 +334,14 @@ function App() {
             <button
               onClick={() => setDarkMode(!darkMode)}
               style={{
-                padding: "8px 12px",
+                padding: isMobile ? "6px 8px" : "8px 12px",
                 background: darkMode ? "#333" : "#ddd",
                 color: darkMode ? "#fff" : "#000",
                 border: "none",
                 borderRadius: "4px",
                 cursor: "pointer",
-                fontSize: "14px",
+                fontSize: isMobile ? "12px" : "14px",
+                whiteSpace: "nowrap"
               }}
             >
               {darkMode ? t('lightMode') : t('darkMode')}
@@ -321,13 +349,14 @@ function App() {
             <button
               onClick={() => setShowFavorites(!showFavorites)}
               style={{
-                padding: "8px 12px",
+                padding: isMobile ? "6px 8px" : "8px 12px",
                 background: showFavorites ? "#FF9800" : "#2196F3",
                 color: "white",
                 border: "none",
                 borderRadius: "4px",
                 cursor: "pointer",
-                fontSize: "14px",
+                fontSize: isMobile ? "12px" : "14px",
+                whiteSpace: "nowrap"
               }}
             >
               {showFavorites
@@ -339,10 +368,10 @@ function App() {
 
         <div
           style={{
-            marginBottom: "20px",
+            marginBottom: isMobile ? "16px" : "20px",
             display: "flex",
             flexWrap: "wrap",
-            gap: "10px",
+            gap: isMobile ? "8px" : "10px",
             alignItems: "center",
           }}
         >
@@ -353,30 +382,33 @@ function App() {
             onChange={(e) => setQuery(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && searchRecipes()}
             style={{
-              padding: "10px",
-              flex: "1 1 300px",
+              padding: isMobile ? "8px" : "10px",
+              flex: "1 1 200px",
               background: darkMode ? "#333" : "#fff",
               color: darkMode ? "#fff" : "#000",
               border: `1px solid ${darkMode ? "#555" : "#ccc"}`,
               borderRadius: "4px",
-              fontSize: "14px",
-              maxWidth: "500px",
+              fontSize: isMobile ? "13px" : "14px",
+              minWidth: "150px",
             }}
           />
           <button
             onClick={searchRecipes}
+            disabled={loading || translating}
             style={{
-              padding: "10px 16px",
+              padding: isMobile ? "8px 12px" : "10px 16px",
               background: "#4CAF50",
               color: "white",
               border: "none",
               borderRadius: "4px",
               cursor: "pointer",
-              fontSize: "14px",
+              fontSize: isMobile ? "13px" : "14px",
               flex: "0 0 auto",
+              opacity: (loading || translating) ? 0.7 : 1,
+              whiteSpace: "nowrap"
             }}
           >
-            {t('searchButton')}
+            {translating ? t('translating') : t('searchButton')}
           </button>
         </div>
 
@@ -384,7 +416,7 @@ function App() {
           <div
             style={{
               textAlign: "center",
-              padding: "40px",
+              padding: isMobile ? "30px" : "40px",
               color: darkMode ? "#aaa" : "#666",
             }}
           >
@@ -395,11 +427,12 @@ function App() {
         {error && (
           <div
             style={{
-              padding: "12px",
+              padding: isMobile ? "10px" : "12px",
               background: darkMode ? "#ff444422" : "#ff444411",
               color: "#ff4444",
               borderRadius: "4px",
-              marginBottom: "16px",
+              marginBottom: isMobile ? "12px" : "16px",
+              fontSize: isMobile ? "13px" : "14px",
             }}
           >
             {error}
@@ -413,8 +446,9 @@ function App() {
             <div
               style={{
                 textAlign: "center",
-                padding: "40px",
+                padding: isMobile ? "30px" : "40px",
                 color: darkMode ? "#aaa" : "#666",
+                fontSize: isMobile ? "14px" : "16px",
               }}
             >
               {t('noFavorites')}
